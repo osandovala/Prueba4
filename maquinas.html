@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Listado de Máquinas - HGT Tour</title>
+  <link rel="stylesheet" href="css/styles.css"/>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f0f4f8;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background-color: #3f72af;
+      color: white;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .container {
+      padding: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: white;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 20px;
+    }
+
+    th, td {
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    th {
+      background-color: #dbe2ef;
+      color: #112d4e;
+      font-weight: 600;
+    }
+
+    tr:hover {
+      background-color: #f1f9ff;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 10px 16px;
+      font-size: 16px;
+      background-color: #3f72af;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s;
+      text-decoration: none;
+    }
+
+    .btn:hover {
+      background-color: #2c5282;
+    }
+
+    .actions {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 20px;
+    }
+
+    .logo {
+      width: 80px;
+      height: 80px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      object-fit: cover;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+    }
+
+    .top-bar h1 {
+      font-size: 20px;
+      color: white;
+      margin: 0;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 20px;
+      color: #666;
+    }
+
+    .error {
+      color: #e74c3c;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .btn-accion {
+      padding: 6px 12px;
+      font-size: 14px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-right: 5px;
+      transition: all 0.3s;
+    }
+    
+    .btn-editar {
+      background-color: #3498db;
+      color: white;
+    }
+    
+    .btn-eliminar {
+      background-color: #e74c3c;
+      color: white;
+    }
+    
+    .btn-accion:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="top-bar">
+      <img src="img/logo.png" alt="Logo" class="logo"/>
+      <h1>Listado de Máquinas - HGT Tour</h1>
+    </div>
+  </header>
+
+  <div class="container">
+    <table id="tablaMaquinas">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Patente</th>
+          <th>Marca</th>
+          <th>Modelo</th>
+          <th>Fabricante</th>
+          <th>Área</th>
+          <th>Horas</th>
+          <th>Año</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="tablaBody">
+        <tr>
+          <td colspan="9" class="loading">Cargando datos...</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="actions">
+      <button class="btn" onclick="volver()">Volver</button>
+      <button class="btn" onclick="agregarMaquina()">Agregar Máquina</button>
+    </div>
+  </div>
+
+  <!-- Incluir database.js -->
+  <script src="js/database.js"></script>
+  
+  <script>
+    // Función para cargar las máquinas
+    function cargarMaquinas() {
+      const tablaBody = document.getElementById('tablaBody');
+      
+      // Mostrar estado de carga
+      tablaBody.innerHTML = '<tr><td colspan="9" class="loading">Cargando datos...</td></tr>';
+      
+      // Usar la función del database.js
+      database.obtenerMaquinas(
+        function(rows) {
+          // Limpiar tabla
+          tablaBody.innerHTML = '';
+          
+          if (rows.length === 0) {
+            tablaBody.innerHTML = '<tr><td colspan="9" class="loading">No hay máquinas registradas</td></tr>';
+            return;
+          }
+          
+          // Llenar tabla con los datos
+          for (let i = 0; i < rows.length; i++) {
+            const item = rows.item(i);
+            const fila = document.createElement('tr');
+            
+            fila.innerHTML = `
+              <td>${item.id}</td>
+              <td>${item.patente || 'N/A'}</td>
+              <td>${item.marca || 'N/A'}</td>
+              <td>${item.modelo || 'N/A'}</td>
+              <td>${item.fabricante || 'N/A'}</td>
+              <td>${item.area || 'N/A'}</td>
+              <td>${item.horas || '0'}</td>
+              <td>${item.anio || 'N/A'}</td>
+              <td>
+                <button class="btn-accion btn-editar" onclick="editarMaquina(${item.id})">Editar</button>
+                <button class="btn-accion btn-eliminar" onclick="confirmarEliminar(${item.id})">Eliminar</button>
+              </td>
+            `;
+            
+            tablaBody.appendChild(fila);
+          }
+        },
+        function(error) {
+          console.error("Error al obtener máquinas:", error);
+          tablaBody.innerHTML = '<tr><td colspan="9" class="error">Error al cargar los datos</td></tr>';
+        }
+      );
+    }
+
+    function editarMaquina(id) {
+      window.location.href = `editar_maquina.html?id=${id}`;
+    }
+
+    function confirmarEliminar(id) {
+      if (confirm('¿Está seguro que desea eliminar esta máquina?')) {
+        database.eliminarMaquina(
+          id,
+          function() {
+            alert('Máquina eliminada correctamente');
+            cargarMaquinas(); // Recargar la lista
+          },
+          function(error) {
+            console.error("Error al eliminar máquina:", error);
+            alert('Error al eliminar la máquina');
+          }
+        );
+      }
+    }
+
+    function volver() {
+      window.location.href = "menu.html";
+    }
+
+    function agregarMaquina() {
+      window.location.href = "agregar_maquina.html";
+    }
+
+    // Esperar a que Cordova esté listo
+    document.addEventListener('deviceready', function() {
+      // Verificar si la base de datos está inicializada
+      if (typeof database !== 'undefined') {
+        cargarMaquinas();
+      } else {
+        console.error("El objeto 'database' no está definido");
+        document.getElementById('tablaBody').innerHTML = 
+          '<tr><td colspan="9" class="error">Error: No se pudo acceder a la base de datos</td></tr>';
+      }
+    }, false);
+  </script>
+
+</body>
+</html>

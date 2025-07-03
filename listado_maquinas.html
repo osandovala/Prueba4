@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Listado de Máquinas - HGT Tour</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        :root {
+            --color-primary: #3f72af;
+            --color-secondary: #dbe2ef;
+            --color-text: #112d4e;
+            --color-error: #e74c3c;
+            --color-success: #2ecc71;
+            --color-warning: #f39c12;
+            --color-light: #f5f7fa;
+            --color-white: #ffffff;
+            --color-gray: #6c757d;
+            --border-radius: 8px;
+            --box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--color-light);
+            color: var(--color-text);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background-color: var(--color-primary);
+            color: white;
+            padding: 15px 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .logo {
+            width: 50px;
+            height: 50px;
+            border-radius: var(--border-radius);
+            object-fit: cover;
+        }
+        
+        h1 {
+            font-size: 1.5rem;
+            margin-left: 15px;
+        }
+        
+        .card {
+            background-color: var(--color-white);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-top: 25px;
+            overflow: hidden;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e6ed;
+        }
+        
+        th {
+            background-color: var(--color-secondary);
+            font-weight: 600;
+            color: var(--color-text);
+            position: sticky;
+            top: 0;
+        }
+        
+        tr:hover {
+            background-color: rgba(219, 226, 239, 0.3);
+        }
+        
+        .status-message {
+            padding: 25px;
+            text-align: center;
+            font-size: 1.1rem;
+            display: none;
+        }
+        
+        .loading {
+            color: var(--color-gray);
+        }
+        
+        .error {
+            color: var(--color-error);
+        }
+        
+        .empty {
+            color: var(--color-gray);
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 8px 15px;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 0.95rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background-color: var(--color-primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2c5282;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-secondary {
+            background-color: var(--color-gray);
+            color: white;
+        }
+        
+        .btn-danger {
+            background-color: var(--color-error);
+            color: white;
+        }
+        
+        .btn-success {
+            background-color: var(--color-success);
+            color: white;
+        }
+        
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.85rem;
+        }
+        
+        .actions {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .connection-warning {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 15px 0;
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            table {
+                display: block;
+                overflow-x: auto;
+            }
+            
+            .btn {
+                padding: 6px 12px;
+                font-size: 0.9rem;
+            }
+            
+            .actions {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .action-buttons {
+                justify-content: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div style="display: flex; align-items: center;">
+                <img src="img/logo.png" alt="Logo HGT Tour" class="logo">
+                <h1>Listado de Máquinas - HGT Tour</h1>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Mensajes de estado -->
+        <div id="loading-message" class="status-message loading">
+            <div class="spinner"></div>
+            <p>Cargando datos de máquinas...</p>
+        </div>
+        
+        <div id="error-message" class="status-message error">
+            <p id="error-text">Ocurrió un error al cargar los datos. Por favor, intente nuevamente.</p>
+            <button class="btn btn-secondary" onclick="cargarMaquinas()">
+                <i class="fas fa-sync-alt"></i> Reintentar
+            </button>
+        </div>
+        
+        <div id="empty-message" class="status-message empty">
+            <p>No se encontraron máquinas registradas.</p>
+        </div>
+        
+        <!-- Action buttons moved to top -->
+        <div class="actions">
+            <button class="btn btn-secondary" onclick="window.location.href='menu.html'">
+                <i class="fas fa-arrow-left"></i> Volver
+            </button>
+            <div class="action-buttons">
+                <button class="btn btn-success" onclick="window.location.href='agregar_maquina.html'">
+                    <i class="fas fa-plus"></i> Agregar Máquina
+                </button>
+                <button class="btn" onclick="cargarMaquinas()">
+                    <i class="fas fa-sync-alt"></i> Actualizar
+                </button>
+            </div>
+        </div>
+
+        <!-- Tabla de máquinas -->
+        <div class="card">
+            <table id="tablaMaquinas">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Patente</th>
+                        <th>Marca</th>
+                        <th>Modelo</th>
+                        <th>Fabricante</th>
+                        <th>Área</th>
+                        <th>Horas</th>
+                        <th>Año</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaBody">
+                    <!-- Los datos se cargarán dinámicamente -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Variable para la base de datos
+        var db = null;
+        
+        // Inicializar la base de datos
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                // Abrir o crear la base de datos
+                db = window.sqlitePlugin.openDatabase({
+                    name: 'hgt_tour.db',
+                    location: 'default'
+                }, function(db) {
+                    console.log('Base de datos abierta con éxito');
+                    resolve(db);
+                }, function(error) {
+                    console.error('Error al abrir la base de datos: ', error);
+                    reject(error);
+                });
+            });
+        }
+        
+        // Función para obtener todas las máquinas
+        function obtenerMaquinas() {
+            return new Promise((resolve, reject) => {
+                db.transaction(function(tx) {
+                    tx.executeSql(
+                        'SELECT * FROM maquinas ORDER BY id DESC',
+                        [],
+                        function(tx, result) {
+                            var maquinas = [];
+                            for (var i = 0; i < result.rows.length; i++) {
+                                maquinas.push(result.rows.item(i));
+                            }
+                            resolve(maquinas);
+                        },
+                        function(tx, error) {
+                            reject(error);
+                        }
+                    );
+                });
+            });
+        }
+        
+        // Función para eliminar una máquina
+        function eliminarMaquina(id) {
+            return new Promise((resolve, reject) => {
+                db.transaction(function(tx) {
+                    tx.executeSql(
+                        'DELETE FROM maquinas WHERE id = ?',
+                        [id],
+                        function(tx, result) {
+                            resolve(result.rowsAffected);
+                        },
+                        function(tx, error) {
+                            reject(error);
+                        }
+                    );
+                });
+            });
+        }
+
+        // Función para mostrar diferentes estados
+        function mostrarEstado(estado) {
+            document.getElementById('loading-message').style.display = 'none';
+            document.getElementById('error-message').style.display = 'none';
+            document.getElementById('empty-message').style.display = 'none';
+            document.getElementById('tablaMaquinas').style.display = 'none';
+            
+            switch(estado) {
+                case 'loading':
+                    document.getElementById('loading-message').style.display = 'block';
+                    break;
+                case 'error':
+                    document.getElementById('error-message').style.display = 'block';
+                    break;
+                case 'empty':
+                    document.getElementById('empty-message').style.display = 'block';
+                    break;
+                case 'success':
+                    document.getElementById('tablaMaquinas').style.display = 'table';
+                    break;
+            }
+        }
+
+        // Función para cargar las máquinas desde la base de datos
+        async function cargarMaquinas() {
+            mostrarEstado('loading');
+            
+            try {
+                const maquinas = await obtenerMaquinas();
+                const tablaBody = document.getElementById('tablaBody');
+                tablaBody.innerHTML = '';
+                
+                if (maquinas.length === 0) {
+                    mostrarEstado('empty');
+                    return;
+                }
+                
+                // Llenar tabla con los datos
+                maquinas.forEach(function(maquina) {
+                    const fila = document.createElement('tr');
+                    
+                    fila.innerHTML = `
+                        <td>${maquina.id}</td>
+                        <td>${maquina.patente || 'N/A'}</td>
+                        <td>${maquina.marca || 'N/A'}</td>
+                        <td>${maquina.modelo || 'N/A'}</td>
+                        <td>${maquina.fabricante || 'N/A'}</td>
+                        <td>${maquina.area || 'N/A'}</td>
+                        <td>${maquina.horas || '0'}</td>
+                        <td>${maquina.anio || 'N/A'}</td>
+                        <td>
+                            <button class="btn btn-sm" onclick="editarMaquina(${maquina.id})">
+                                <i class="fas fa-edit"></i> Editar
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="confirmarEliminar(${maquina.id})">
+                                <i class="fas fa-trash-alt"></i> Eliminar
+                            </button>
+                        </td>
+                    `;
+                    
+                    tablaBody.appendChild(fila);
+                });
+                
+                mostrarEstado('success');
+            } catch (error) {
+                console.error("Error al cargar máquinas:", error);
+                mostrarEstado('error');
+                document.getElementById('error-text').textContent = 'Error al cargar los datos: ' + error.message;
+            }
+        }
+
+        // Función para eliminar una máquina
+        async function confirmarEliminar(id) {
+            if (confirm('¿Está seguro que desea eliminar esta máquina?\nEsta acción no se puede deshacer.')) {
+                try {
+                    await eliminarMaquina(id);
+                    cargarMaquinas();
+                } catch (error) {
+                    console.error("Error al eliminar máquina:", error);
+                    alert('Error al eliminar la máquina: ' + error.message);
+                }
+            }
+        }
+
+        // Función para editar máquina (redirige a página de edición)
+        function editarMaquina(id) {
+            window.location.href = `editar_maquina.html?id=${id}`;
+        }
+
+        // Inicializar la aplicación cuando Cordova esté lista
+        document.addEventListener('deviceready', function() {
+            initDB().then(() => {
+                cargarMaquinas();
+            }).catch(error => {
+                console.error('Error al inicializar la base de datos:', error);
+                mostrarEstado('error');
+                document.getElementById('error-text').textContent = 'Error al conectar con la base de datos';
+            });
+        }, false);
+    </script>
+</body>
+</html>

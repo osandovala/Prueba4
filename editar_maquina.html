@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Máquina - HGT Tour</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        :root {
+            --color-primary: #3f72af;
+            --color-secondary: #dbe2ef;
+            --color-text: #112d4e;
+            --color-error: #e74c3c;
+            --color-success: #2ecc71;
+            --border-radius: 8px;
+            --box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            color: var(--color-text);
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 25px;
+        }
+        
+        h1 {
+            color: var(--color-primary);
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.8rem;
+            position: relative;
+            padding-bottom: 10px;
+        }
+        
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 3px;
+            background-color: var(--color-primary);
+        }
+        
+        form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            form {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: var(--color-text);
+        }
+        
+        .required-field::after {
+            content: " *";
+            color: var(--color-error);
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(63, 114, 175, 0.2);
+        }
+        
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .full-width {
+            grid-column: 1 / -1;
+        }
+        
+        .actions {
+            grid-column: 1 / -1;
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background-color: var(--color-primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2c5282;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+        
+        .btn-danger {
+            background-color: var(--color-error);
+            color: white;
+        }
+        
+        .status-message {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: var(--border-radius);
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .error {
+            background-color: #f8d7da;
+            color: var(--color-error);
+            border-left: 4px solid var(--color-error);
+        }
+        
+        .success {
+            background-color: #d4edda;
+            color: var(--color-success);
+            border-left: 4px solid var(--color-success);
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Editar Máquina</h1>
+        
+        <div id="error-message" class="status-message error" style="display: none;"></div>
+        <div id="success-message" class="status-message success" style="display: none;"></div>
+        
+        <form id="formEditarMaquina">
+            <input type="hidden" id="maquinaId">
+            
+            <div class="form-group">
+                <label for="patente" class="required-field">Patente</label>
+                <input type="text" id="patente" name="patente" placeholder="Ej: ABC123" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="marca">Marca</label>
+                <input type="text" id="marca" name="marca" placeholder="Ej: Caterpillar">
+            </div>
+            
+            <div class="form-group">
+                <label for="modelo">Modelo</label>
+                <input type="text" id="modelo" name="modelo" placeholder="Ej: 320D">
+            </div>
+            
+            <div class="form-group">
+                <label for="fabricante">Fabricante</label>
+                <input type="text" id="fabricante" name="fabricante" placeholder="Ej: Caterpillar Inc.">
+            </div>
+            
+            <div class="form-group">
+                <label for="codigo_serie">Código de Serie</label>
+                <input type="text" id="codigo_serie" name="codigo_serie" placeholder="Código único">
+            </div>
+            
+            <div class="form-group">
+                <label for="area">Área</label>
+                <input type="text" id="area" name="area" placeholder="Ej: Excavación">
+            </div>
+            
+            <div class="form-group">
+                <label for="horas">Horas de Uso</label>
+                <input type="number" id="horas" name="horas" placeholder="Ej: 1250" min="0">
+            </div>
+            
+            <div class="form-group">
+                <label for="anio">Año</label>
+                <input type="number" id="anio" name="anio" placeholder="Ej: 2018" min="1900" max="2099">
+            </div>
+            
+            <div class="form-group full-width">
+                <label for="observaciones">Observaciones</label>
+                <textarea id="observaciones" name="observaciones" placeholder="Notas adicionales" rows="3"></textarea>
+            </div>
+            
+            <div class="actions">
+                <button type="button" class="btn btn-secondary" onclick="window.location.href='/listado'">
+                    <i class="fas fa-arrow-left"></i> Cancelar
+                </button>
+                <button type="submit" class="btn btn-primary" id="submit-button">
+                    <span id="button-text"><i class="fas fa-save"></i> Guardar Cambios</span>
+                </button>
+                <button type="button" class="btn btn-danger" id="btn-eliminar">
+                    <i class="fas fa-trash-alt"></i> Eliminar
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const maquinaId = urlParams.get('id');
+            
+            if (!maquinaId) {
+                mostrarError('ID de máquina no especificado');
+                return;
+            }
+            
+            document.getElementById('maquinaId').value = maquinaId;
+            
+            // Cargar datos de la máquina
+            try {
+                const response = await fetch(`/api/maquinas/${maquinaId}`);
+                
+                if (!response.ok) {
+                    throw new Error('Error al cargar los datos de la máquina');
+                }
+                
+                const maquina = await response.json();
+                
+                // Llenar formulario con los datos
+                document.getElementById('patente').value = maquina.patente || '';
+                document.getElementById('marca').value = maquina.marca || '';
+                document.getElementById('modelo').value = maquina.modelo || '';
+                document.getElementById('fabricante').value = maquina.fabricante || '';
+                document.getElementById('codigo_serie').value = maquina.codigo_serie || '';
+                document.getElementById('area').value = maquina.area || '';
+                document.getElementById('horas').value = maquina.horas || 0;
+                document.getElementById('anio').value = maquina.anio || '';
+                document.getElementById('observaciones').value = maquina.observaciones || '';
+                
+            } catch (error) {
+                console.error('Error al cargar máquina:', error);
+                mostrarError(error.message);
+                setTimeout(() => {
+                    window.location.href = '/listado';
+                }, 3000);
+            }
+            
+            // Configurar evento de envío del formulario
+            const form = document.getElementById('formEditarMaquina');
+            const submitButton = document.getElementById('submit-button');
+            const buttonText = document.getElementById('button-text');
+            
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                // Ocultar mensajes anteriores
+                document.getElementById('error-message').style.display = 'none';
+                document.getElementById('success-message').style.display = 'none';
+                
+                // Validar campos requeridos
+                const patente = document.getElementById('patente').value.trim();
+                if (!patente) {
+                    mostrarError('La patente es un campo requerido');
+                    document.getElementById('patente').focus();
+                    return;
+                }
+                
+                // Mostrar estado de carga
+                submitButton.disabled = true;
+                buttonText.innerHTML = '<span class="loading-spinner"></span> Guardando...';
+                
+                try {
+                    // Crear objeto con los datos del formulario
+                    const maquinaData = {
+                        patente: patente,
+                        marca: document.getElementById('marca').value.trim(),
+                        modelo: document.getElementById('modelo').value.trim(),
+                        fabricante: document.getElementById('fabricante').value.trim(),
+                        codigo_serie: document.getElementById('codigo_serie').value.trim(),
+                        area: document.getElementById('area').value.trim(),
+                        horas: parseInt(document.getElementById('horas').value) || 0,
+                        anio: parseInt(document.getElementById('anio').value) || new Date().getFullYear(),
+                        observaciones: document.getElementById('observaciones').value.trim()
+                    };
+                    
+                    // Enviar datos al servidor
+                    const response = await fetch(`/api/maquinas/${maquinaId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(maquinaData)
+                    });
+                    
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'Error al guardar los cambios');
+                    }
+                    
+                    // Mostrar mensaje de éxito
+                    mostrarExito('Máquina actualizada correctamente');
+                    
+                    // Redirigir después de 2 segundos
+                    setTimeout(() => {
+                        window.location.href = '/listado';
+                    }, 2000);
+                    
+                } catch (error) {
+                    console.error('Error al guardar cambios:', error);
+                    mostrarError(error.message);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    
+                } finally {
+                    // Restaurar el botón de enviar
+                    submitButton.disabled = false;
+                    buttonText.innerHTML = '<i class="fas fa-save"></i> Guardar Cambios';
+                }
+            });
+            
+            // Configurar evento de eliminación
+            document.getElementById('btn-eliminar').addEventListener('click', async function() {
+                if (confirm('¿Está seguro que desea eliminar esta máquina?\nEsta acción no se puede deshacer.')) {
+                    try {
+                        const response = await fetch(`/api/maquinas/${maquinaId}`, {
+                            method: 'DELETE'
+                        });
+                        
+                        if (!response.ok) {
+                            throw new Error('Error al eliminar la máquina');
+                        }
+                        
+                        mostrarExito('Máquina eliminada correctamente');
+                        
+                        setTimeout(() => {
+                            window.location.href = '/listado';
+                        }, 2000);
+                        
+                    } catch (error) {
+                        console.error('Error al eliminar máquina:', error);
+                        mostrarError(error.message);
+                    }
+                }
+            });
+        });
+
+        function mostrarError(mensaje) {
+            const errorElement = document.getElementById('error-message');
+            errorElement.textContent = mensaje;
+            errorElement.style.display = 'block';
+        }
+        
+        function mostrarExito(mensaje) {
+            const successElement = document.getElementById('success-message');
+            successElement.textContent = mensaje;
+            successElement.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
